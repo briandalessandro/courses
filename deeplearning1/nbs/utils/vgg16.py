@@ -16,7 +16,7 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2
 from keras.layers.pooling import GlobalAveragePooling2D
 from keras.optimizers import SGD, RMSprop, Adam
 from keras.preprocessing import image
-from keras.regularizers import l2, l2_activity, l1, l1_activity
+from keras.regularizers import l2, l1
 
 
 vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3,1,1))
@@ -96,25 +96,34 @@ class Vgg16():
         model.add(Dense(batches.nb_class, activation='softmax'))
         self.compile()
 
-    def finetune_flex(self, batches, retrain_dense_layers):
-	'''
-	Adding more options to the finetune method:
-	1. ability to remove and readd more than 1 layer
-	2. ability to add regularization
-	'''
-	layers = model.layers
-	# Get the indexes of the dense layers...
-	dense_idx = [index for index,layer in enumerate(layers) if type(layer) is Dense]
-	# ...and set this and all subsequent layers to trainable
-	first_dense_id = dense_idx[-retrain_dense_layers]
-	for layer in layers[first_dense_id:]: 
-		layer.trainable=True
+    def finetune_reg(self, batches, c = 0.01):
+        model = self.model
+        model.pop()
+        for layer in model.layers: layer.trainable=False
+        model.add(Dense(batches.nb_class, activation='softmax', W_regularizer = l2(c)))
+        self.compile()
+      
+        
+        '''
+        def finetune_flex(self, batches, retrain_dense_layers):
+        '''
+        #Adding more options to the finetune method:
+        #1. ability to remove and readd more than 1 layer
+        #2. ability to add regularization
+        '''
+        layers = model.layers
+        # Get the indexes of the dense layers...
+        dense_idx = [index for index,layer in enumerate(layers) if type(layer) is Dense]
+        # ...and set this and all subsequent layers to trainable
+        first_dense_id = dense_idx[-retrain_dense_layers]
+        for layer in layers[first_dense_id:]: 
+        layer.trainable=True
         model = self.model
         model.pop()
         for layer in model.layers: layer.trainable=False
         model.add(Dense(batches.nb_class, activation='softmax'))
         self.compile()
-
+        '''
 
 
 
