@@ -63,6 +63,10 @@ class Vgg16():
         model.add(Dense(4096, activation='relu'))
         model.add(Dropout(0.5))
 
+    def FCBlock_reg(self, c = 0.1):
+        model = self.model
+        model.add(Dense(4096, activation='relu', W_regularizer = l2(c)))
+        model.add(Dropout(0.5))        
 
     def create(self):
         model = self.model = Sequential()
@@ -96,7 +100,7 @@ class Vgg16():
         model.add(Dense(batches.nb_class, activation='softmax'))
         self.compile()
 
-    def finetune_reg(self, batches, c = 0.01):
+    def finetune_reg(self, batches, c = 0.1):
         model = self.model
         model.pop()
         for layer in model.layers: layer.trainable=False
